@@ -1,5 +1,7 @@
 package com.potalab.http.digest.servlet;
 
+import com.potalab.http.digest.auth.HttpDigestAuthorizationModule;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -11,16 +13,11 @@ import java.util.Map;
 
 @WebServlet(name = "httpDigestServlet", value = "/digest")
 public class HttpDigestServlet extends HttpServlet {
-    private static final Map<String, String> users = new HashMap<>();
-    static {
-        users.put("admin", "admin");
-        users.put("user1", "1234");
-        users.put("user2", "abcd");
-    }
+    private HttpDigestAuthorizationModule digestAuthorizationModule = new HttpDigestAuthorizationModule("testingRealm");
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // TODO Digest 인증으로 로그인하는 코드 작성
-        response.getWriter().println("Welcome!");
+        response.setContentType("text/html;charset=UTF-8");
+        digestAuthorizationModule.authorize(request, response);
     }
 }

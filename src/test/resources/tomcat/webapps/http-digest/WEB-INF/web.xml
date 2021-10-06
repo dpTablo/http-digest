@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="4.0"
+         xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd">
+
+    <request-character-encoding>UTF-8</request-character-encoding>
+    <response-character-encoding>UTF-8</response-character-encoding>
+
+    <!--
+    <login-config>
+        <auth-method>DIGEST</auth-method>
+        <realm-name>mRealm1</realm-name>
+    </login-config>
+
+    <security-role>
+        <role-name>administrators</role-name>
+        <role-name>users1</role-name>
+        <role-name>users2</role-name>
+    </security-role>
+    -->
+    <!--
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Memory Realm Sample</web-resource-name>
+            <url-pattern>/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>administrators</role-name>
+            <role-name>users1</role-name>
+            <role-name>users2</role-name>
+        </auth-constraint>
+    </security-constraint>
+    -->
+
+</web-app>
