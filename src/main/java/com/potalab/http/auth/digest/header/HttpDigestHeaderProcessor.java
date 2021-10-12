@@ -1,16 +1,21 @@
-package com.potalab.http.auth.digest;
+package com.potalab.http.auth.digest.header;
 
+import com.potalab.http.auth.digest.exception.NonceNotCreatedException;
 import com.potalab.http.auth.digest.security.Encryptor;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.UUID;
+import java.util.Base64;
 
 public abstract class HttpDigestHeaderProcessor {
-    protected String createNonce() {
-        return UUID.randomUUID().toString();
+    protected String createNonce(String key1, String key2) throws NonceNotCreatedException {
+        if(key1 == null || key1.isEmpty() || key2 == null || key2.isEmpty()) {
+            throw new NonceNotCreatedException("Missing required keys.");
+        }
+        String value = String.format("%d:%s:%s", System.currentTimeMillis(), key1, key2);
+        return Base64.getEncoder().encodeToString(value.getBytes());
     }
 
     public void appendSeparator(StringBuilder builder, boolean flag) {
@@ -33,10 +38,19 @@ public abstract class HttpDigestHeaderProcessor {
         return true;
     }
 
-    protected void appendNonce(StringBuilder builder, WwwAuthenticateHeader header, boolean appendSeparator) {
+    protected void appendNonce(
+            StringBuilder builder,
+            WwwAuthenticateHeader header,
+            String nonceCombinKey1,
+            String nonceCombinKey2, boolean appendSeparator
+    ) throws NonceNotCreatedException {
         appendSeparator(builder, appendSeparator);
 
-        String nonceValue = Encryptor.encode(header.getAlgorithm(), createNonce());
+        String nonce = createNonce(nonceCombinKey1, nonceCombinKey2);
+        String nonceValue = Encryptor.encode(
+                header.getAlgorithm(),
+                nonce
+        );
         builder.append("nonce=");
         builder.append("\"");
         builder.append(nonceValue);
@@ -46,9 +60,7 @@ public abstract class HttpDigestHeaderProcessor {
     protected void appendCnonce(StringBuilder builder, String value, boolean appendSeparator) {
         appendSeparator(builder, appendSeparator);
         builder.append("cnonce=");
-        builder.append("\"");
         builder.append(value);
-        builder.append("\"");
     }
 
     protected void appendNc(StringBuilder builder, String value, boolean appendSeparator) {

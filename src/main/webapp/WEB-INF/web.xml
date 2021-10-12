@@ -7,7 +7,6 @@
     <request-character-encoding>UTF-8</request-character-encoding>
     <response-character-encoding>UTF-8</response-character-encoding>
 
-    <!--
     <login-config>
         <auth-method>DIGEST</auth-method>
         <realm-name>mRealm1</realm-name>
@@ -18,12 +17,11 @@
         <role-name>users1</role-name>
         <role-name>users2</role-name>
     </security-role>
-    -->
-    <!--
+
     <security-constraint>
         <web-resource-collection>
             <web-resource-name>Memory Realm Sample</web-resource-name>
-            <url-pattern>/*</url-pattern>
+            <url-pattern>/tomcat/test1</url-pattern>
         </web-resource-collection>
         <auth-constraint>
             <role-name>administrators</role-name>
@@ -31,6 +29,4 @@
             <role-name>users2</role-name>
         </auth-constraint>
     </security-constraint>
-    -->
-
 </web-app>

@@ -1,13 +1,11 @@
-package com.potalab.http.auth.digest;
+package com.potalab.http.auth.digest.header;
 
+import com.potalab.http.auth.digest.exception.AuthorizationHeaderNullPointerException;
 import com.potalab.http.auth.digest.field.HttpDigestAlgorithm;
 import com.potalab.http.auth.digest.field.Qop;
 import com.potalab.http.auth.digest.security.Encryptor;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Set;
 
 /**
@@ -26,10 +24,10 @@ public class AuthorizationHeaderProcessor extends HttpDigestHeaderProcessor {
      *
      * @return
      */
-    public String createResponse(AuthorizationHeader header, HttpServletRequest request, HttpDigestAlgorithm algorithm, String password) {
+    public String createResponse(AuthorizationHeader header, HttpServletRequest request, HttpDigestAlgorithm algorithm, String password) throws AuthorizationHeaderNullPointerException {
         Set<Qop> qopSet = header.getQopSet();
         if(!qopSet.contains(Qop.AUTH) && !qopSet.contains(Qop.AUTH_INT)) {
-            return "";
+            throw new AuthorizationHeaderNullPointerException("Qop is null");
         }
 
         String ha1 = Encryptor.encode(algorithm, createA1(header, algorithm, password));
@@ -49,7 +47,7 @@ public class AuthorizationHeaderProcessor extends HttpDigestHeaderProcessor {
         return Encryptor.encode(algorithm, ha1 + ":" + data);
     }
 
-    public String createA1(AuthorizationHeader header, HttpDigestAlgorithm algorithm, String password) {
+    private String createA1(AuthorizationHeader header, HttpDigestAlgorithm algorithm, String password) {
         switch (algorithm) {
             case MD5_SESS:
             case SHA_256_SESS:
@@ -60,7 +58,7 @@ public class AuthorizationHeaderProcessor extends HttpDigestHeaderProcessor {
         }
     }
 
-    public String createA2(AuthorizationHeader header, HttpServletRequest request, HttpDigestAlgorithm algorithm) {
+    private String createA2(AuthorizationHeader header, HttpServletRequest request, HttpDigestAlgorithm algorithm) {
         Set<Qop> qopSet = header.getQopSet();
 
         if(qopSet.contains(Qop.AUTH_INT)) {

@@ -1,4 +1,4 @@
-package com.potalab.http.auth.digest;
+package com.potalab.http.auth.digest.header;
 
 import com.potalab.http.auth.digest.field.HttpDigestAlgorithm;
 import com.potalab.http.auth.digest.field.Qop;
@@ -8,17 +8,25 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 public class AuthenticationInfoHeaderProcessor extends HttpDigestHeaderProcessor {
+    /**
+     *
+     * @param authenticationInfoHeader
+     * @param algorithm
+     * @param request entity 정보 처리를 위한 request
+     * @param uri "Authorization" 헤더 정보의 uri
+     * @return
+     */
     public String createAuthenticationInfoHeaderValue(
             AuthenticationInfoHeader authenticationInfoHeader,
-            AuthorizationHeader authorizationHeader,
             HttpDigestAlgorithm algorithm,
-            HttpServletRequest request
+            HttpServletRequest request,
+            String uri
     ) {
         try {
             StringBuilder builder = new StringBuilder();
             appendQop(builder, authenticationInfoHeader.getQopString(), false);
             appendNextNonce(builder, authenticationInfoHeader);
-            appendRspauth(builder, authorizationHeader, authenticationInfoHeader, algorithm, request);
+            appendRspauth(builder, authenticationInfoHeader, algorithm, request, uri);
             appendReturnCnonce(builder, authenticationInfoHeader);
             appendReturnNc(builder, authenticationInfoHeader);
             return builder.toString();
@@ -50,16 +58,16 @@ public class AuthenticationInfoHeaderProcessor extends HttpDigestHeaderProcessor
      */
     private void appendRspauth(
             StringBuilder builder,
-            AuthorizationHeader authorizationHeader,
             AuthenticationInfoHeader authenticationInfoHeader,
             HttpDigestAlgorithm algorithm,
-            HttpServletRequest request
+            HttpServletRequest request,
+            String uri
     ) throws IOException {
         String value = "";
         if(authenticationInfoHeader.getQopSet().contains(Qop.AUTH)) {
-            value = ":" + Encryptor.encode(algorithm, authorizationHeader.getUri());
+            value = ":" + Encryptor.encode(algorithm, uri);
         } else if(authenticationInfoHeader.getQopSet().contains(Qop.AUTH_INT)) {
-            value = ":" + authorizationHeader.getUri() + ":" + Encryptor.encode(algorithm, readRequestBody(request));
+            value = ":" + uri + ":" + Encryptor.encode(algorithm, readRequestBody(request));
         }
 
         if(!value.isEmpty()) {

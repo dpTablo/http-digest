@@ -1,4 +1,4 @@
-package com.potalab.http.auth.digest;
+package com.potalab.http.auth.digest.header;
 
 import com.potalab.http.auth.digest.field.HttpDigestAlgorithm;
 import com.potalab.http.auth.digest.field.Qop;
@@ -51,6 +51,10 @@ public class WwwAuthenticateHeader {
 
     public void addQop(Qop value) {
         this.qopSet.add(value);
+    }
+
+    public void addQop(Set<Qop> values) {
+        this.qopSet.addAll(values);
     }
 
     public void getQopSet() {

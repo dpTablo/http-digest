@@ -1,59 +1,68 @@
 package com.potalab.http.auth.digest;
 
-import com.potalab.http.auth.digest.field.HttpDigestAlgorithm;
-import com.potalab.http.auth.digest.field.Qop;
+import com.potalab.http.auth.digest.exception.HttpDigestModuleRuntimeException;
+import com.potalab.http.auth.digest.exception.NonceNotCreatedException;
+import com.potalab.http.auth.digest.header.*;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 public class HttpDigestAuthorizationModule {
-    private String REALM_NAME = "potalab_realm";
-    private HttpDigestAlgorithm DIGEST_ALGORITHM = HttpDigestAlgorithm.MD5;
-    private String QOP = "auth";
+    private HttpDigestConfiguration httpDigestConfiguration;
 
     private UserAuthcertificationData userAuthcertificationData = new UserAuthcertificationData();
     private AuthorizationHeaderProcessor authorizationHeaderProcessor = new AuthorizationHeaderProcessor();
-    private WwwAuthenticateHeaderProcessor authenticateHeaderProcessor = new WwwAuthenticateHeaderProcessor();
+    private WwwAuthenticateHeaderProcessor authenticateHeaderProcessor;
     private AuthenticationInfoHeaderProcessor authenticationInfoHeaderProcessor = new AuthenticationInfoHeaderProcessor();
 
-    public HttpDigestAuthorizationModule(String realmName) {
-        this.REALM_NAME = realmName;
+    public HttpDigestAuthorizationModule(HttpDigestConfiguration httpDigestConfiguration) throws HttpDigestModuleRuntimeException {
+        this.httpDigestConfiguration = httpDigestConfiguration;
+
+        ExpireTimeOpaqueGenerator opaqueGenerator = new ExpireTimeOpaqueGenerator(
+                httpDigestConfiguration.getOpaquePrivateKey(),
+                httpDigestConfiguration.getTimeout()
+        );
+        authenticateHeaderProcessor = new WwwAuthenticateHeaderProcessor(opaqueGenerator);
     }
 
-    public void authorize(HttpServletRequest request, HttpServletResponse response) {
-        if(isAuthorization(request, response)) {
-            // TODO 인증에 성공한 경우의 대한 header 출력
-//            response.setStatus(HttpServletResponse.SC_OK);
-//            try {
-//                response.getWriter().println("인증성공");
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
+    public void authorize(HttpServletRequest request, HttpServletResponse response) throws NonceNotCreatedException {
+        String authorization = request.getHeader(HttpHeadersConstants.AUTHORIZATION);
+        AuthorizationHeader authorizationHeader = new AuthorizationHeader(authorization);
 
-//            String headerValue = authenticationInfoHeaderProcessor.createAuthenticationInfoHeaderValue();
+        if(isAuthorization(authorizationHeader, request)) {
+            AuthenticationInfoHeader authenticationInfoHeader = new AuthenticationInfoHeader(authorizationHeader);
+            String headerValue = authenticationInfoHeaderProcessor.createAuthenticationInfoHeaderValue(
+                    authenticationInfoHeader,
+                    httpDigestConfiguration.getAlgorithm(),
+                    request,
+                    authorizationHeader.getUri()
+            );
 
+            response.setHeader(HttpHeadersConstants.AUTHENTICATION_INFO, headerValue);
         } else {
-            WwwAuthenticateHeader authenticateHeader = new WwwAuthenticateHeader(REALM_NAME);
+            WwwAuthenticateHeader authenticateHeader = new WwwAuthenticateHeader(httpDigestConfiguration.getRealmName());
             authenticateHeader.setDomain("www.potalab.com");
-            authenticateHeader.addQop(Qop.AUTH);
-            authenticateHeader.setAlgorithm(HttpDigestAlgorithm.MD5);
-            String headerValue = authenticateHeaderProcessor.createUnauthorizedHeaderValue(authenticateHeader);
+            authenticateHeader.addQop(httpDigestConfiguration.getQopSet());
+            authenticateHeader.setAlgorithm(httpDigestConfiguration.getAlgorithm());
+            authenticateHeader.setOpaque("aaabbbccc");
+
+            String headerValue = authenticateHeaderProcessor.createUnauthorizedHeaderValue(
+                    authenticateHeader,
+                    request.getRemoteAddr(),
+                    httpDigestConfiguration.getNoncePrivateKey()
+            );
 
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setHeader(HttpHeaders.WWW_AUTHENTICATE, headerValue);
+            response.setHeader(HttpHeadersConstants.WWW_AUTHENTICATE, headerValue);
         }
     }
 
-    private boolean isAuthorization(HttpServletRequest request, HttpServletResponse response) {
+    private boolean isAuthorization(AuthorizationHeader authorizationHeader, HttpServletRequest request) {
         try {
-            String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
-            assert authorization != null;
-
-            AuthorizationHeader authorizationHeader = new AuthorizationHeader(authorization);
             String validResponseValue = authorizationHeaderProcessor.createResponse(
                     authorizationHeader,
                     request,
-                    DIGEST_ALGORITHM,
+                    httpDigestConfiguration.getAlgorithm(),
                     userAuthcertificationData.getPassword(authorizationHeader.getUserNameWithRemoveDoubleQuotes())
             );
             return validResponseValue.equals(authorizationHeader.getResponseWithRemovedDoubleQuotes());

@@ -1,6 +1,6 @@
 package com.potalab.http.auth.digest;
 
-import com.potalab.http.auth.digest.AuthorizationHeader;
+import com.potalab.http.auth.digest.header.AuthorizationHeader;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,7 +20,7 @@ class AuthorizationHeaderTest {
             nc=00000002,
             cnonce="370ad495c868bd67"
          */
-        String testHeaderValue = "Digest username=\"admin\", realm=\"testingRealm\", nonce=\"960a48d7330f27e8d16abcf60c4d03c1\", uri=\"/http-digest/digest\", response=\"98a852bb03e027262d347511352123c7\", qop=auth, nc=00000002, cnonce=\"370ad495c868bd67\"";
+        String testHeaderValue = "Digest username=\"admin\", realm=\"testingRealm\", nonce=\"960a48d7330f27e8d16abcf60c4d03c1\", uri=\"/http-digest/digest\", opaque=\"960a48d7330f27e8d16abcf60c4d03c1:309283049ksjdfkj29==\", response=\"98a852bb03e027262d347511352123c7\", qop=auth, nc=00000002, cnonce=\"370ad495c868bd67\"";
 
         AuthorizationHeader header = new AuthorizationHeader(testHeaderValue);
         assertEquals("\"admin\"", header.getUserName());
@@ -31,5 +31,7 @@ class AuthorizationHeaderTest {
         assertEquals("auth", header.getQopString());
         assertEquals("00000002", header.getNc());
         assertEquals("\"370ad495c868bd67\"", header.getCnonce());
+        assertEquals("\"960a48d7330f27e8d16abcf60c4d03c1:309283049ksjdfkj29==\"", header.getOpaque());
+
     }
 }

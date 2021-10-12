@@ -1,4 +1,4 @@
-package com.potalab.http.auth.digest;
+package com.potalab.http.auth.digest.header;
 
 import com.potalab.http.auth.digest.field.Qop;
 import lombok.Getter;
@@ -27,12 +27,13 @@ public class AuthenticationInfoHeader {
 
     /**
      *
-     * @param cnonce Authorization 헤더로부터 전달된 cnonce
-     * @param nc Authorization 헤더로부터 전달된 nc
+     * cnonce Authorization 헤더로부터 전달된 cnonce
+     * Authorization 헤더로부터 전달된 nc
      */
-    public AuthenticationInfoHeader(String cnonce, String nc) {
-        this.cnonce = cnonce;
-        this.nc = nc;
+    public AuthenticationInfoHeader(AuthorizationHeader authorizationHeader) {
+        this.qopSet.addAll(authorizationHeader.getQopSet());
+        this.cnonce = authorizationHeader.getCnonce();
+        this.nc = authorizationHeader.getNc();
     }
 
     public Set<Qop> getQopSet() {
@@ -40,6 +41,10 @@ public class AuthenticationInfoHeader {
     }
 
     public String getQopString() {
+        if(qopSet.isEmpty()) {
+            return "";
+        }
+
         String result = "";
         for(Qop qop : qopSet) {
             result += qop.getValue() + ", ";

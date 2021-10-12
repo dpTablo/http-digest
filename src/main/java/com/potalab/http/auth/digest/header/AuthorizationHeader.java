@@ -1,4 +1,4 @@
-package com.potalab.http.auth.digest;
+package com.potalab.http.auth.digest.header;
 
 import com.potalab.http.auth.digest.field.Qop;
 
@@ -72,7 +72,15 @@ public class AuthorizationHeader {
         return map.get("uri");
     }
 
+    public String getOpaque() {
+        return map.get("opaque");
+    }
+
     private void parse(String value) {
+        if(value == null || value.isEmpty()) {
+            return;
+        }
+
         Map<String, String> resultMap = new HashMap<>();
 
         int endIndex = 0;
@@ -83,38 +91,39 @@ public class AuthorizationHeader {
 
         value = value.substring(endIndex + 1);
 
-        int equalsCount = 0;
+        int commaCount = 0;
         String headerName = "";
         String headerValue = "";
+        StringBuilder characterBuilder = new StringBuilder();
         char[] chars = value.toCharArray();
 
         for(int i = 0; i < chars.length; i++) {
             char character = chars[i];
 
-            if(character == '=') {
-                equalsCount++;
+            if(character == ',') {
+                commaCount++;
+            }
+
+            if(commaCount == 1) {
+                putHeader(map, characterBuilder.toString());
+
+                characterBuilder.setLength(0);
+                commaCount = 0;
                 continue;
             }
 
-            if(character == ',' && equalsCount == 1) {
-                equalsCount = 0;
-
-                resultMap.put(headerName.trim(), headerValue);
-                headerName = "";
-                headerValue = "";
-                continue;
-            }
-
-            if(equalsCount < 1) {
-                headerName += character;
-            } else {
-                headerValue += character;
-            }
+            characterBuilder.append(character);
         }
 
-        if(!headerName.isEmpty() && !headerValue.isEmpty()) {
-            resultMap.put(headerName.trim(), headerValue);
-        }
+        putHeader(map, characterBuilder.toString());
         map.putAll(resultMap);
+    }
+
+    private void putHeader(Map<String, String> map, String value) {
+        int equalsIndex = value.indexOf('=');
+
+        String headerName = value.substring(0, equalsIndex);
+        String headerValue = value.substring(equalsIndex + 1);
+        map.put(headerName.trim(), headerValue);
     }
 }

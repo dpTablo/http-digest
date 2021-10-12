@@ -1,6 +1,8 @@
 package com.potalab.http.auth.digest;
 
 import com.potalab.http.auth.digest.field.HttpDigestAlgorithm;
+import com.potalab.http.auth.digest.header.AuthorizationHeader;
+import com.potalab.http.auth.digest.header.AuthorizationHeaderProcessor;
 import org.junit.jupiter.api.Test;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,8 +29,9 @@ class AuthorizationHeaderProcessorTest {
         HttpServletRequest request = mock(HttpServletRequest.class);
         doReturn("GET").when(request).getMethod();
 
-        String responseString = processor.createResponse(authorizationHeader, request, HttpDigestAlgorithm.MD5, "1234");
-        assertEquals("34e68c62ae99b2392016c4084bca3ceb", responseString);
-//        processor.createResponse()
+        assertDoesNotThrow(() -> {
+            String responseString = processor.createResponse(authorizationHeader, request, HttpDigestAlgorithm.MD5, "1234");
+            assertEquals("34e68c62ae99b2392016c4084bca3ceb", responseString);
+        });
     }
 }

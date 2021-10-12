@@ -1,24 +1,35 @@
-package com.potalab.http.auth.digest;
+package com.potalab.http.auth.digest.header;
+
+import com.potalab.http.auth.digest.exception.HttpDigestModuleRuntimeException;
+import com.potalab.http.auth.digest.exception.NonceNotCreatedException;
 
 /**
  * WWW-Authenticate 헤더의 값을 생성합니다.
- *
- * - 임시구현 항목
- * 'qop' : 'auth, auth-int' 고정 출력
  *
  * - 미구현 항목
  * 'token68'
  */
 public class WwwAuthenticateHeaderProcessor extends HttpDigestHeaderProcessor {
-    public String createUnauthorizedHeaderValue(WwwAuthenticateHeader header) {
+    private OpaqueGenerator opaqueGenerator;
+
+    public WwwAuthenticateHeaderProcessor(OpaqueGenerator opaqueGenerator) throws HttpDigestModuleRuntimeException {
+        if(opaqueGenerator == null) {
+            throw new HttpDigestModuleRuntimeException("OpaqueGenerator is required.");
+        }
+        this.opaqueGenerator = opaqueGenerator;
+    }
+
+    public String createUnauthorizedHeaderValue(WwwAuthenticateHeader header, String nonceCombinKey1, String nonceCombinKey2) throws NonceNotCreatedException {
         StringBuilder builder = new StringBuilder();
 
         appendAuthScheme(builder);
         appendRealm(builder, header);
         appendDomain(builder, header);
-        appendNonce(builder, header, true);
+        appendNonce(builder, header, nonceCombinKey1, nonceCombinKey2,true);
         appendQop(builder, header.getQopString(), true);
         appendAlgorithm(builder, header);
+        appendStale(builder, header);
+        appendOpaque(builder, header);
 
         return builder.toString();
     }
@@ -51,9 +62,23 @@ public class WwwAuthenticateHeaderProcessor extends HttpDigestHeaderProcessor {
     }
 
     private void appendAlgorithm(StringBuilder builder, WwwAuthenticateHeader header) {
-        builder.append(", algorithm=");
+        appendSeparator(builder, true);
+        builder.append("algorithm=");
         builder.append("\"");
         builder.append(header.getAlgorithm().getValue());
+        builder.append("\"");
+    }
+
+    private void appendStale(StringBuilder builder, WwwAuthenticateHeader header) {
+        // TODO not implement.
+        return;
+    }
+
+    private void appendOpaque(StringBuilder builder, WwwAuthenticateHeader header) {
+        appendSeparator(builder, true);
+        builder.append("opaque=");
+        builder.append("\"");
+        builder.append(opaqueGenerator.get(header.getAlgorithm()));
         builder.append("\"");
     }
 }
