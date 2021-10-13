@@ -2,7 +2,8 @@ package com.potalab.http.auth.digest.field;
 
 public enum Qop {
     AUTH("auth"),
-    AUTH_INT("auth-int");
+    AUTH_INT("auth-int"),
+    NONE("none");
 
     private String value;
     Qop(String value) {

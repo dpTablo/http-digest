@@ -14,6 +14,7 @@ public class HttpDigestAuthorizationModule {
     private AuthorizationHeaderProcessor authorizationHeaderProcessor = new AuthorizationHeaderProcessor();
     private WwwAuthenticateHeaderProcessor authenticateHeaderProcessor;
     private AuthenticationInfoHeaderProcessor authenticationInfoHeaderProcessor = new AuthenticationInfoHeaderProcessor();
+    private OpaqueValidator opaqueValidator;
 
     public HttpDigestAuthorizationModule(HttpDigestConfiguration httpDigestConfiguration) throws HttpDigestModuleRuntimeException {
         this.httpDigestConfiguration = httpDigestConfiguration;
@@ -23,6 +24,8 @@ public class HttpDigestAuthorizationModule {
                 httpDigestConfiguration.getTimeout()
         );
         authenticateHeaderProcessor = new WwwAuthenticateHeaderProcessor(opaqueGenerator);
+
+        opaqueValidator = new ExpireTimeOpaqueValidator(httpDigestConfiguration);
     }
 
     public void authorize(HttpServletRequest request, HttpServletResponse response) throws NonceNotCreatedException {
@@ -44,7 +47,6 @@ public class HttpDigestAuthorizationModule {
             authenticateHeader.setDomain("www.potalab.com");
             authenticateHeader.addQop(httpDigestConfiguration.getQopSet());
             authenticateHeader.setAlgorithm(httpDigestConfiguration.getAlgorithm());
-            authenticateHeader.setOpaque("aaabbbccc");
 
             String headerValue = authenticateHeaderProcessor.createUnauthorizedHeaderValue(
                     authenticateHeader,
@@ -59,6 +61,11 @@ public class HttpDigestAuthorizationModule {
 
     private boolean isAuthorization(AuthorizationHeader authorizationHeader, HttpServletRequest request) {
         try {
+            boolean isValidOpaque = opaqueValidator.validate(authorizationHeader.getOpaqueWithRemoveDoubleQuotes());
+            if(!isValidOpaque) {
+                return false;
+            }
+
             String validResponseValue = authorizationHeaderProcessor.createResponse(
                     authorizationHeader,
                     request,

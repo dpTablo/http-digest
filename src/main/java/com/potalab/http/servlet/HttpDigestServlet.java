@@ -5,6 +5,7 @@ import com.potalab.http.auth.digest.HttpDigestConfiguration;
 import com.potalab.http.auth.digest.exception.HttpDigestModuleRuntimeException;
 import com.potalab.http.auth.digest.exception.NonceNotCreatedException;
 import com.potalab.http.auth.digest.field.HttpDigestAlgorithm;
+import com.potalab.http.auth.digest.field.Qop;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -23,6 +24,7 @@ public class HttpDigestServlet extends HttpServlet {
         configuration.setRealmName("r1");
         configuration.setNoncePrivateKey("np");
         configuration.setAlgorithm(HttpDigestAlgorithm.MD5_SESS);
+        configuration.addQopSet(Qop.AUTH);
 
         try {
             digestAuthorizationModule = new HttpDigestAuthorizationModule(configuration);

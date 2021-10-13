@@ -23,9 +23,4 @@ public class MD5Encoder {
             return "";
         }
     }
-
-    public static boolean matching(String originalValue, String compareValue){
-        String md5 = MD5Encoder.encode(compareValue);
-        return md5.equals(originalValue);
-    }
 }

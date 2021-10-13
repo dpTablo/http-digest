@@ -31,20 +31,19 @@ public class AuthorizationHeader {
         return map.get("nonce");
     }
 
-    public Set<Qop> getQopSet() {
+    public Qop getQop() {
         try {
-            Set<Qop> list = new HashSet<>();
-
             String[] qopArray = map.get("qop").split(",");
             for(String item : qopArray) {
                 Qop qop = Qop.valueOf(item.trim().toUpperCase().replace("-", "_"));
-                assert qop != null;
-
-                list.add(qop);
+                if(qop != null) {
+                    return qop;
+                }
             }
-            return list;
+
+            return Qop.NONE;
         } catch (Throwable e) {
-            return Collections.emptySet();
+            return Qop.NONE;
         }
     }
 
@@ -76,6 +75,10 @@ public class AuthorizationHeader {
         return map.get("opaque");
     }
 
+    public String getOpaqueWithRemoveDoubleQuotes() {
+        return map.get("opaque") != null ? map.get("opaque").replace("\"", "") : "";
+    }
+
     private void parse(String value) {
         if(value == null || value.isEmpty()) {
             return;
@@ -92,8 +95,7 @@ public class AuthorizationHeader {
         value = value.substring(endIndex + 1);
 
         int commaCount = 0;
-        String headerName = "";
-        String headerValue = "";
+        int dqCount = 0;
         StringBuilder characterBuilder = new StringBuilder();
         char[] chars = value.toCharArray();
 
@@ -102,13 +104,16 @@ public class AuthorizationHeader {
 
             if(character == ',') {
                 commaCount++;
+            } else if(character == '\"') {
+                dqCount++;
             }
 
-            if(commaCount == 1) {
+            if(commaCount == 1 && (dqCount == 0 || dqCount == 2)) {
                 putHeader(map, characterBuilder.toString());
 
                 characterBuilder.setLength(0);
                 commaCount = 0;
+                dqCount = 0;
                 continue;
             }
 

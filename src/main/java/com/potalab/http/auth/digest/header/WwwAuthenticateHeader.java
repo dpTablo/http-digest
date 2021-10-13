@@ -62,10 +62,12 @@ public class WwwAuthenticateHeader {
     }
 
     public String getQopString() {
-        String result = "";
-        for(Qop qop : qopSet) {
-            result += qop.getValue() + ", ";
+        if(qopSet.contains(Qop.AUTH)) {
+            return Qop.AUTH.getValue();
+        } else if(qopSet.contains(Qop.AUTH_INT)) {
+            return Qop.AUTH_INT.getValue();
+        } else {
+            return "";
         }
-        return result.substring(0, result.length() - 2);
     }
 }

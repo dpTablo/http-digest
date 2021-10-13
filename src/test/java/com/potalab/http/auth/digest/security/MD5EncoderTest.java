@@ -1,5 +1,6 @@
 package com.potalab.http.auth.digest.security;
 
+import com.potalab.http.auth.digest.field.HttpDigestAlgorithm;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -15,6 +16,6 @@ class MD5EncoderTest {
     @Test
     void matching() {
         String value1 = MD5Encoder.encode("cat");
-        MD5Encoder.matching(value1, "cat");
+        assertTrue(Encryptor.matching(HttpDigestAlgorithm.MD5, value1, "cat"));
     }
 }

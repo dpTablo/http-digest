@@ -33,10 +33,9 @@ public class HttpDigestConfiguration {
     private HttpDigestAlgorithm algorithm = HttpDigestAlgorithm.MD5;
 
     @Getter
-    @Setter
     private Set<Qop> qopSet = new HashSet<>();
 
-    public HttpDigestConfiguration() {
-        qopSet.add(Qop.AUTH);
+    public void addQopSet(Qop qop) {
+        qopSet.add(qop);
     }
 }

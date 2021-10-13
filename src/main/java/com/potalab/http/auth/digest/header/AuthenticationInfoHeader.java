@@ -13,7 +13,8 @@ public class AuthenticationInfoHeader {
     @Getter
     private String nextnonce = "";
 
-    private Set<Qop> qopSet = new HashSet<>();
+    @Getter
+    private Qop qop = Qop.NONE;
 
     @Setter
     @Getter
@@ -31,24 +32,12 @@ public class AuthenticationInfoHeader {
      * Authorization 헤더로부터 전달된 nc
      */
     public AuthenticationInfoHeader(AuthorizationHeader authorizationHeader) {
-        this.qopSet.addAll(authorizationHeader.getQopSet());
+        this.qop = authorizationHeader.getQop();
         this.cnonce = authorizationHeader.getCnonce();
         this.nc = authorizationHeader.getNc();
     }
 
-    public Set<Qop> getQopSet() {
-        return Collections.unmodifiableSet(qopSet);
-    }
-
     public String getQopString() {
-        if(qopSet.isEmpty()) {
-            return "";
-        }
-
-        String result = "";
-        for(Qop qop : qopSet) {
-            result += qop.getValue() + ", ";
-        }
-        return result.substring(0, result.length() - 2);
+        return qop.getValue();
     }
 }

@@ -15,4 +15,9 @@ public class Encryptor {
                 return MD5Encoder.encode(value);
         }
     }
+
+    public static boolean matching(HttpDigestAlgorithm algorithm, String originalValue, String compareValue){
+        String value = Encryptor.encode(algorithm, compareValue);
+        return value.equals(originalValue);
+    }
 }

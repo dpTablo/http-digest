@@ -25,8 +25,8 @@ public class AuthorizationHeaderProcessor extends HttpDigestHeaderProcessor {
      * @return
      */
     public String createResponse(AuthorizationHeader header, HttpServletRequest request, HttpDigestAlgorithm algorithm, String password) throws AuthorizationHeaderNullPointerException {
-        Set<Qop> qopSet = header.getQopSet();
-        if(!qopSet.contains(Qop.AUTH) && !qopSet.contains(Qop.AUTH_INT)) {
+        Qop qop = header.getQop();
+        if(qop != Qop.AUTH && qop != Qop.AUTH_INT) {
             throw new AuthorizationHeaderNullPointerException("Qop is null");
         }
 
@@ -59,9 +59,9 @@ public class AuthorizationHeaderProcessor extends HttpDigestHeaderProcessor {
     }
 
     private String createA2(AuthorizationHeader header, HttpServletRequest request, HttpDigestAlgorithm algorithm) {
-        Set<Qop> qopSet = header.getQopSet();
+        Qop qop = header.getQop();
 
-        if(qopSet.contains(Qop.AUTH_INT)) {
+        if(qop == Qop.AUTH_INT) {
             return createA2_auth_int(header, request, algorithm);
         } else {
             return createA2_normal(header, request, algorithm);

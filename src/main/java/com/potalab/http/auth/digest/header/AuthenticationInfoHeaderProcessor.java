@@ -64,9 +64,9 @@ public class AuthenticationInfoHeaderProcessor extends HttpDigestHeaderProcessor
             String uri
     ) throws IOException {
         String value = "";
-        if(authenticationInfoHeader.getQopSet().contains(Qop.AUTH)) {
+        if(authenticationInfoHeader.getQop() == Qop.AUTH) {
             value = ":" + Encryptor.encode(algorithm, uri);
-        } else if(authenticationInfoHeader.getQopSet().contains(Qop.AUTH_INT)) {
+        } else if(authenticationInfoHeader.getQop() == Qop.AUTH_INT) {
             value = ":" + uri + ":" + Encryptor.encode(algorithm, readRequestBody(request));
         }
 
